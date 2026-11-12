@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DCA Projector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0a0f0c;--card:#121a15;--line:#1f2c24;--ink:#eafbf1;--muted:#86a394;--faint:#4f6657;
+    --grow:#2fd98a;--contrib:#3a5e4c;--gold:#ffcf4d;--real:#5ad1ff;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(900px 600px at 85% 0,rgba(47,217,138,0.08),transparent 60%)}
+  .wrap{max-width:1140px;margin:0 auto;padding:26px 22px 70px}
+  h1{font-weight:700;font-size:25px}h1 b{color:var(--grow)}
+  header p{color:var(--muted);font-size:13px;margin:4px 0 22px}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  .layout{display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:start}
+  @media(max-width:920px){.layout{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+  .card h2{font-size:11px;letter-spacing:1.3px;text-transform:uppercase;color:var(--faint);margin-bottom:16px;font-weight:600}
+  .ctl{margin-bottom:18px}
+  .ctl label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}
+  .ctl label b{font-family:'IBM Plex Mono';color:var(--grow)}
+  input[type=range]{width:100%;accent-color:var(--grow)}
+  .seg{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .seg span{font-size:13px;color:var(--muted)}
+  .seg input{width:90px;background:#0c130f;border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--ink);font-family:'IBM Plex Mono';text-align:right;outline:none}
+  .head{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px}
+  @media(max-width:560px){.head{grid-template-columns:1fr}}
+  .big{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden}
+  .big .l{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
+  .big .v{font-family:'IBM Plex Mono';font-size:30px;font-weight:700;margin-top:6px;line-height:1}
+  .big.nominal .v{color:var(--grow)}.big.real .v{color:var(--real)}
+  .big .sub{font-size:12px;color:var(--muted);margin-top:6px}
+  canvas{display:block;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin:12px 0 0}
+  .legend i{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:middle}
+  .split{display:flex;height:34px;border-radius:8px;overflow:hidden;margin-top:18px;border:1px solid var(--line)}
+  .split .c{background:var(--contrib);display:flex;align-items:center;justify-content:center;font-size:12px;color:#cfe6da;font-family:'IBM Plex Mono'}
+  .split .g{background:var(--grow);display:flex;align-items:center;justify-content:center;font-size:12px;color:#04140a;font-weight:600;font-family:'IBM Plex Mono'}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+  th{text-align:left;font-size:10.5px;letter-spacing:0.8px;text-transform:uppercase;color:var(--faint);font-weight:600;padding:0 8px 10px}
+  th.r,td.r{text-align:right;font-family:'IBM Plex Mono'}
+  td{padding:9px 8px;border-bottom:1px solid var(--line)}
+  td.scn{font-weight:600}
+  .note{font-size:11.5px;color:var(--faint);line-height:1.5;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>DCA <b>Projector</b></h1>
+    <p>Dollar-cost-averaging compounded over time. Tuned to your £3/day habit — see how contributions and growth stack up, in today's money too.</p>
+  </header>
+  <div class="layout">
+    <div class="card">
+      <h2>Your Plan</h2>
+      <div class="seg"><span>Invest £</span><input id="daily" type="number" value="3" step="0.5"><span>per day</span></div>
+      <div class="seg"><span>Start with £</span><input id="start" type="number" value="0" step="100"></div>
+      <div class="ctl"><label>Time horizon <b><span id="yrsV">25</span> yrs</b></label><input type="range" id="yrs" min="1" max="40" value="25"></div>
+      <div class="ctl"><label>Annual return <b><span id="retV">8.0</span>%</b></label><input type="range" id="ret" min="0" max="15" step="0.5" value="8"></div>
+      <div class="ctl"><label>Inflation <b><span id="infV">2.5</span>%</b></label><input type="range" id="inf" min="0" max="8" step="0.5" value="2.5"></div>
+      <div class="ctl"><label>Annual contribution increase <b><span id="incV">0</span>%</b></label><input type="range" id="inc" min="0" max="10" step="0.5" value="0"></div>
+      <div class="note">Compounded monthly. Contributions are made monthly (≈ daily × 30.44). "Real" values discount by inflation to today's money.</div>
+    </div>
+    <div>
+      <div class="head">
+        <div class="big nominal"><div class="l">Final value (nominal)</div><div class="v" id="finNom">—</div><div class="sub" id="finNomSub"></div></div>
+        <div class="big real"><div class="l">In today's money (real)</div><div class="v" id="finReal">—</div><div class="sub" id="finRealSub"></div></div>
+      </div>
+      <canvas id="chart"></canvas>
+      <div class="legend"><span><i style="background:var(--contrib)"></i>contributions</span><span><i style="background:var(--grow)"></i>compound growth</span></div>
+      <div class="split" id="split"></div>
+      <div class="card" style="margin-top:18px">
+        <h2>Return Scenarios (final value after <span id="scnYrs">25</span> yrs)</h2>
+        <table id="scnTbl"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const cv=$("chart"),ctx=cv.getContext("2d");
+  const fmt=n=>"£"+Math.round(n).toLocaleString("en-GB");
+  const fmtK=n=>n>=1e6?"£"+(n/1e6).toFixed(2)+"M":n>=1e3?"£"+(n/1e3).toFixed(0)+"k":"£"+Math.round(n);
+
+  function project(daily,start,years,annual,inc){
+    const months=years*12, mrate=Math.pow(1+annual/100,1/12)-1;
+    let monthly=daily*365/12, bal=start, contributed=start;
+    const series=[{y:0,bal:start,contrib:start}];
+    for(let mth=1;mth<=months;mth++){
+      bal=bal*(1+mrate)+monthly;contributed+=monthly;
+      if(mth%12===0){monthly*=(1+inc/100);series.push({y:mth/12,bal,contrib:contributed});}
+    }
+    return{series,bal,contributed};
+  }
+
+  let cur=null;
+  function run(){
+    const daily=+$("daily").value||0,start=+$("start").value||0,years=+$("yrs").value,
+      ret=+$("ret").value,inf=+$("inf").value,inc=+$("inc").value;
+    const p=project(daily,start,years,ret,inc);
+    const real=p.bal/Math.pow(1+inf/100,years);
+    const growth=p.bal-p.contributed;
+    cur=p;
+    $("finNom").textContent=fmt(p.bal);
+    $("finNomSub").textContent=fmt(p.contributed)+" in, "+fmt(growth)+" growth ("+(growth/p.contributed*100).toFixed(0)+"% gain)";
+    $("finReal").textContent=fmt(real);
+    $("finRealSub").textContent="after "+inf+"% inflation for "+years+" yrs";
+    // split bar
+    const cp=p.contributed/p.bal*100;
+    $("split").innerHTML=`<div class="c" style="width:${cp}%">${cp.toFixed(0)}% in</div><div class="g" style="width:${100-cp}%">${(100-cp).toFixed(0)}% growth</div>`;
+    drawChart(p.series);
+    // scenarios
+    $("scnYrs").textContent=years;
+    const scns=[["Conservative",Math.max(0,ret-3)],["Your base",ret],["Optimistic",ret+3]];
+    $("scnTbl").innerHTML=`<thead><tr><th>Scenario</th><th class="r">Return</th><th class="r">Nominal</th><th class="r">Real (today)</th></tr></thead><tbody>`+
+      scns.map(([nm,r])=>{const pp=project(daily,start,years,r,inc);const rr=pp.bal/Math.pow(1+inf/100,years);
+        return `<tr><td class="scn">${nm}</td><td class="r">${r.toFixed(1)}%</td><td class="r" style="color:var(--grow)">${fmt(pp.bal)}</td><td class="r" style="color:var(--real)">${fmt(rr)}</td></tr>`;}).join("")+"</tbody>";
+  }
+
+  function drawChart(series){
+    const w=cv.clientWidth,h=320,DPR=devicePixelRatio||1;cv.width=w*DPR;cv.height=h*DPR;cv.style.height=h+"px";
+    ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,w,h);
+    const pad={l:60,r:16,t:16,b:28};const maxY=series[series.length-1].bal*1.05||1;const maxX=series[series.length-1].y||1;
+    const X=x=>pad.l+(w-pad.l-pad.r)*x/maxX, Y=y=>pad.t+(h-pad.t-pad.b)*(1-y/maxY);
+    // grid + y labels
+    ctx.strokeStyle="#1f2c24";ctx.fillStyle="#4f6657";ctx.font="11px IBM Plex Mono";ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const yy=maxY*i/4;const py=Y(yy);ctx.beginPath();ctx.moveTo(pad.l,py);ctx.lineTo(w-pad.r,py);ctx.stroke();
+      ctx.fillText(fmtK(yy),6,py+3);}
+    for(let i=0;i<=Math.min(maxX,8);i++){const xv=maxX*i/Math.min(maxX,8);ctx.fillText(Math.round(xv)+"y",X(xv)-8,h-pad.b+16);}
+    // contributions area
+    ctx.fillStyle="rgba(58,94,76,0.65)";ctx.beginPath();ctx.moveTo(X(0),Y(0));
+    series.forEach(s=>ctx.lineTo(X(s.y),Y(s.contrib)));ctx.lineTo(X(maxX),Y(0));ctx.closePath();ctx.fill();
+    // growth area (between contrib and bal)
+    ctx.fillStyle="rgba(47,217,138,0.45)";ctx.beginPath();
+    series.forEach((s,i)=>{i?ctx.lineTo(X(s.y),Y(s.contrib)):ctx.moveTo(X(s.y),Y(s.contrib));});
+    for(let i=series.length-1;i>=0;i--)ctx.lineTo(X(series[i].y),Y(series[i].bal));ctx.closePath();ctx.fill();
+    // balance line
+    ctx.strokeStyle="#2fd98a";ctx.lineWidth=2.4;ctx.beginPath();
+    series.forEach((s,i)=>{i?ctx.lineTo(X(s.y),Y(s.bal)):ctx.moveTo(X(s.y),Y(s.bal));});ctx.stroke();
+  }
+
+  ["daily","start","yrs","ret","inf","inc"].forEach(id=>$(id).addEventListener("input",()=>{
+    $("yrsV").textContent=$("yrs").value;$("retV").textContent=(+$("ret").value).toFixed(1);
+    $("infV").textContent=(+$("inf").value).toFixed(1);$("incV").textContent=$("inc").value;run();}));
+  addEventListener("resize",()=>{if(cur)drawChart(cur.series);});
+  run();
+})();
+</script>
+</body>
+</html>
