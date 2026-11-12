@@ -1,5 +1,7 @@
 # DCA Projector
 
+**▶ Try it online: [https://omri-n6gdp.github.io/dca-projector/](https://omri-n6gdp.github.io/dca-projector/)** (works on phones too)
+
 Dollar-cost-averaging projector: compare investment scenarios over time.
 
 ## How to use
